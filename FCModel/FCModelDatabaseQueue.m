@@ -6,6 +6,7 @@
 //
 
 #import "FCModelDatabaseQueue.h"
+#import <SQLCipher/sqlite3.h>
 
 // this NSOperation only exists, rather than using addOperationWithBlock:, so we can use addOperations:waitUntilFinished:
 //  rather than having to wait for ALL operations to finish in execOnSelfSync:
@@ -39,7 +40,7 @@
 {
     if (! self.openDatabase) [self execOnSelfSync:^{
         self.openDatabase = [[FMDatabase alloc] initWithPath:self.path];
-        if (! [self.openDatabase open]) {
+        if (! [self.openDatabase openWithFlags:(SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)]) {
             [[NSException exceptionWithName:NSGenericException reason:[NSString stringWithFormat:@"Cannot open or create database at path: %@", self.path] userInfo:nil] raise];
         }
     }];
