@@ -165,6 +165,25 @@ static inline BOOL checkForOpenDatabaseFatal(BOOL fatal)
     return instance;
 }
 
++ (instancetype)loadedInstanceWithPrimaryKey:(id)primaryKeyValue
+{
+    if (! primaryKeyValue || primaryKeyValue == NSNull.null) {
+        return nil;
+    }
+    [self uniqueMapInit];
+
+    primaryKeyValue = [self normalizedPrimaryKeyValue:primaryKeyValue];
+
+    FCModel *instance = NULL;
+    dispatch_semaphore_wait(g_instancesReadLock, DISPATCH_TIME_FOREVER);
+    NSMapTable *classCache = g_instances[self];
+    if (! classCache) classCache = g_instances[(id) self] = [NSMapTable strongToWeakObjectsMapTable];
+    instance = [classCache objectForKey:primaryKeyValue];
+    dispatch_semaphore_signal(g_instancesReadLock);
+
+    return instance;
+}
+
 - (void)registerUniqueInstance
 {
     id primaryKeyValue = self.primaryKey;
